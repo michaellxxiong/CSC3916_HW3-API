@@ -68,106 +68,121 @@ router.post('/signin', async (req, res) => { // Use async/await
 });
 
 router.route('/movies')
-    .get(authJwtController.isAuthenticated, async (req, res) => {
-        return res.status(500).json({ success: false, message: 'GET request not supported' });
-    })
     .post(authJwtController.isAuthenticated, async (req, res) => {
-        return res.status(500).json({ success: false, message: 'POST request not supported' });
-    })
 
-    .post(authJwtController.isAuthenticated, async (req, res) => {
-        Movie.findOne({Title: req.body.Title}, function(err)
-        {
-            if (err)
-            {
-                res.status(400);
-            }
-            else if(req.body.ActorsAndCharacters.length < 3)
-            {
-                res.json({message: "You must have at least 3 actors and characters per movie!"});
-            }
-            else if (req.data !== 0) {
-                let newmovie = new Movie;
-                newmovie.Title = req.body.Title;
-                newmovie.ReleaseDate = req.body.ReleaseDate;
-                newmovie.Genre = req.body.Genre;
-                newmovie.ActorsAndCharacters = req.body.ActorsAndCharacters;
+        // Log the incoming request body for debugging
+        //console.log('Request body received:', req.body);
 
-                newmovie.save(function (err)
-                {
-                    if (err)
-                    {
-                       res.json({message: err});
-                    }
-                    else
-                    {
-                        res.json({status: 200, success: true, message: "The movie " + req.body.Title + " has been successfully saved!"});
-                    }
-                });
-            }
-        });
-    })
-    .get(authJwtController.isAuthenticated, async (req, res) => {
-        Movie.find({Title: req.body.Title}, function(err, data)
-        {
-            if (err)
-            {
-                res.json(err);
-                res.json({message: "There was an issue trying to find your movie"})
-            }
-            else if (data.length === 0)
-            {
-                res.json({message: "The Movie " + req.body.Title + " was not found"});
-            }
-            else
-            {
-                res.json({status: 200, message: "The movie with " + req.body.Title + " was found!"});
-            }
-        })
-    })
-    .put(authJwtController.isAuthenticated, async (req,res) => {
-        Movie.findOneAndUpdate({Title: req.body.Title},
-        {
-            Title: req.body.Title,
-            ReleaseDate: req.body.ReleaseDate,
-            Genre: req.body.Genre,
-            ActorsAndCharacters: req.body.ActorsAndCharacters
-        },function(err, doc, data)
-            {
-                if(err)
-                {
-                    res.json({message: err});
-                    res.json({message: "There was an issue trying to update your movie."})
-                }
-                else if(doc === 0)
-                {
-                    res.json({message: "Sorry the movie wanted to update was not found in the data base."});
-                }
-                else
-                {
-                    res.json({status: 200, message: "The Movie " + req.body.Title + " has been updated!!"});
-
-                }
-
+        // Validate that the title field is provided
+        if (!req.body.title || req.body.title.trim() === "") {
+            console.log('Validation failed: No title provided');
+            return res.status(400).json({
+                success: false,
+                message: "Title is required!"
             });
+        }
+
+        // Validate that the releaseDate field is provided and is a number
+        if (!req.body.releaseDate || isNaN(req.body.releaseDate)) {
+            console.log('Validation failed: Invalid or missing releaseDate');
+            return res.status(400).json({
+                success: false,
+                message: "A valid releaseDate is required!"
+            });
+        }
+
+        // Validate that the genre field is provided
+        if (!req.body.genre || req.body.genre.trim() === "") {
+            console.log('Validation failed: No genre provided');
+            return res.status(400).json({
+                success: false,
+                message: "Genre is required!"
+            });
+        }
+
+        // Validate that the actors field is provided and contains at least one actor
+        if (!req.body.actors || req.body.actors.length === 0) {
+            console.log('Validation failed: No actors provided');
+            return res.status(400).json({
+                success: false,
+                message: "A movie must contain at least one actor!"
+            });
+        }
+
+        try {
+            // Log before creating the movie
+            //console.log('Creating movie with Title:', req.body.title);
+
+            // Create a new movie document
+            const movie = new Movie({
+                title: req.body.title,
+                releaseDate: req.body.releaseDate,
+                genre: req.body.genre,
+                actors: req.body.actors
+            });
+
+            // Log after creating the movie object (before saving)
+            //console.log('Movie object:', movie);
+
+            // Save the movie to the MongoDB database
+            await movie.save();
+
+            // Log after saving the movie
+            //console.log('Movie saved successfully:', movie);
+
+            // Return success message with the movie object
+            return res.status(201).json({
+                success: true,
+                message: `The movie "${req.body.title}" has been successfully saved!`,
+                movie  // Return the created movie object
+            });
+
+        } catch (err) {
+            // Log the error if saving fails
+            console.error('Error saving movie:', err.message);
+
+            return res.status(500).json({
+                success: false,
+                message: "Error saving movie",
+                error: err.message
+            });
+        }
     })
-    .delete(authJwtController.isAuthenticated, async (req, res) => {
-        Movie.findOneAndDelete({Title: req.body.Title}, function(err, data)
-        {
-            if (err)
-            {
-                res.json(err);
-                res.json({message: "There was an issue trying to find your movie"})
+    .get(authJwtController.isAuthenticated, async (req, res) => {
+        const { title } = req.query;  // Look for the 'title' query parameter
+
+        try {
+            // If no title is provided, return all movies
+            if (title) {
+                // Find the movie by title
+                const movie = await Movie.findOne({ title });
+
+                if (!movie) {
+                    return res.status(404).json({
+                        success: false,
+                        message: `Movie with title "${title}" not found.`
+                    });
+                }
+
+                // Return the found movie
+                return res.status(200).json(movie);  // Return just the movie object
+            } else {
+                // If no title, return all movies as an array
+                const movies = await Movie.find();
+
+                // Return the list of movies directly as an array
+                return res.status(200).json(movies);  // Return just the array of movies
             }
-            else if (data.length === null)
-            {   
-                res.json({message: "The Movie " + req.body.Title + " was not found"});
-            }
-            else
-            {
-                res.json({message: "The movie with " + req.body.Title + " was deleted!"});
-            }
-        })
+        } catch (err) {
+            // Log any errors that occur
+            console.error('Error retrieving movies:', err.message);
+
+            return res.status(500).json({
+                success: false,
+                message: "Error retrieving movies",
+                error: err.message
+            });
+        }
     });
 
 app.use('/', router);
