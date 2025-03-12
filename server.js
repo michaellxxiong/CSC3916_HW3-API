@@ -73,6 +73,101 @@ router.route('/movies')
     })
     .post(authJwtController.isAuthenticated, async (req, res) => {
         return res.status(500).json({ success: false, message: 'POST request not supported' });
+    })
+
+    .post(authJwtController.isAuthenticated, async (req, res) => {
+        Movie.findOne({Title: req.body.Title}, function(err)
+        {
+            if (err)
+            {
+                res.status(400);
+            }
+            else if(req.body.ActorsAndCharacters.length < 3)
+            {
+                res.json({message: "You must have at least 3 actors and characters per movie!"});
+            }
+            else if (req.data !== 0) {
+                let newmovie = new Movie;
+                newmovie.Title = req.body.Title;
+                newmovie.ReleaseDate = req.body.ReleaseDate;
+                newmovie.Genre = req.body.Genre;
+                newmovie.ActorsAndCharacters = req.body.ActorsAndCharacters;
+
+                newmovie.save(function (err)
+                {
+                    if (err)
+                    {
+                       res.json({message: err});
+                    }
+                    else
+                    {
+                        res.json({status: 200, success: true, message: "The movie " + req.body.Title + " has been successfully saved!"});
+                    }
+                });
+            }
+        });
+    })
+    .get(authJwtController.isAuthenticated, async (req, res) => {
+        Movie.find({Title: req.body.Title}, function(err, data)
+        {
+            if (err)
+            {
+                res.json(err);
+                res.json({message: "There was an issue trying to find your movie"})
+            }
+            else if (data.length === 0)
+            {
+                res.json({message: "The Movie " + req.body.Title + " was not found"});
+            }
+            else
+            {
+                res.json({status: 200, message: "The movie with " + req.body.Title + " was found!"});
+            }
+        })
+    })
+    .put(authJwtController.isAuthenticated, async (req,res) => {
+        Movie.findOneAndUpdate({Title: req.body.Title},
+        {
+            Title: req.body.Title,
+            ReleaseDate: req.body.ReleaseDate,
+            Genre: req.body.Genre,
+            ActorsAndCharacters: req.body.ActorsAndCharacters
+        },function(err, doc, data)
+            {
+                if(err)
+                {
+                    res.json({message: err});
+                    res.json({message: "There was an issue trying to update your movie."})
+                }
+                else if(doc === 0)
+                {
+                    res.json({message: "Sorry the movie wanted to update was not found in the data base."});
+                }
+                else
+                {
+                    res.json({status: 200, message: "The Movie " + req.body.Title + " has been updated!!"});
+
+                }
+
+            });
+    })
+    .delete(authJwtController.isAuthenticated, async (req, res) => {
+        Movie.findOneAndDelete({Title: req.body.Title}, function(err, data)
+        {
+            if (err)
+            {
+                res.json(err);
+                res.json({message: "There was an issue trying to find your movie"})
+            }
+            else if (data.length === null)
+            {   
+                res.json({message: "The Movie " + req.body.Title + " was not found"});
+            }
+            else
+            {
+                res.json({message: "The movie with " + req.body.Title + " was deleted!"});
+            }
+        })
     });
 
 app.use('/', router);
