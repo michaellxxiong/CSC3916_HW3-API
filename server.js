@@ -67,15 +67,12 @@ router.post('/signin', async (req, res) => { // Use async/await
   }
 });
 
-router.route('/movies')
+router.route('/addmovies')
+    //Add a new movie
     .post(authJwtController.isAuthenticated, async (req, res) => {
-
-        // Log the incoming request body for debugging
-        //console.log('Request body received:', req.body);
 
         // Validate that the title field is provided
         if (!req.body.title || req.body.title.trim() === "") {
-            console.log('Validation failed: No title provided');
             return res.status(400).json({
                 success: false,
                 message: "Title is required!"
@@ -84,7 +81,6 @@ router.route('/movies')
 
         // Validate that the releaseDate field is provided and is a number
         if (!req.body.releaseDate || isNaN(req.body.releaseDate)) {
-            console.log('Validation failed: Invalid or missing releaseDate');
             return res.status(400).json({
                 success: false,
                 message: "A valid releaseDate is required!"
@@ -93,7 +89,6 @@ router.route('/movies')
 
         // Validate that the genre field is provided
         if (!req.body.genre || req.body.genre.trim() === "") {
-            console.log('Validation failed: No genre provided');
             return res.status(400).json({
                 success: false,
                 message: "Genre is required!"
@@ -102,7 +97,6 @@ router.route('/movies')
 
         // Validate that the actors field is provided and contains at least one actor
         if (!req.body.actors || req.body.actors.length === 0) {
-            console.log('Validation failed: No actors provided');
             return res.status(400).json({
                 success: false,
                 message: "A movie must contain at least one actor!"
@@ -110,8 +104,6 @@ router.route('/movies')
         }
 
         try {
-            // Log before creating the movie
-            //console.log('Creating movie with Title:', req.body.title);
 
             // Create a new movie document
             const movie = new Movie({
@@ -121,14 +113,8 @@ router.route('/movies')
                 actors: req.body.actors
             });
 
-            // Log after creating the movie object (before saving)
-            //console.log('Movie object:', movie);
-
             // Save the movie to the MongoDB database
             await movie.save();
-
-            // Log after saving the movie
-            //console.log('Movie saved successfully:', movie);
 
             // Return success message with the movie object
             return res.status(201).json({
@@ -138,8 +124,6 @@ router.route('/movies')
             });
 
         } catch (err) {
-            // Log the error if saving fails
-            console.error('Error saving movie:', err.message);
 
             return res.status(500).json({
                 success: false,
@@ -147,36 +131,20 @@ router.route('/movies')
                 error: err.message
             });
         }
-    })
+    });
+
+router.route('/listmovies')
+    //Get all movies
     .get(authJwtController.isAuthenticated, async (req, res) => {
-        const { title } = req.query;  // Look for the 'title' query parameter
-
         try {
-            // If no title is provided, return all movies
-            if (title) {
-                // Find the movie by title
-                const movie = await Movie.findOne({ title });
+            // If no title, return all movies as an array
+            const movies = await Movie.find();
 
-                if (!movie) {
-                    return res.status(404).json({
-                        success: false,
-                        message: `Movie with title "${title}" not found.`
-                    });
-                }
+            // Return the list of movies directly as an array
+            return res.status(200).json(movies);  // Return just the array of movies
 
-                // Return the found movie
-                return res.status(200).json(movie);  // Return just the movie object
-            } else {
-                // If no title, return all movies as an array
-                const movies = await Movie.find();
-
-                // Return the list of movies directly as an array
-                return res.status(200).json(movies);  // Return just the array of movies
-            }
         } catch (err) {
-            // Log any errors that occur
-            console.error('Error retrieving movies:', err.message);
-
+            
             return res.status(500).json({
                 success: false,
                 message: "Error retrieving movies",
@@ -187,9 +155,11 @@ router.route('/movies')
 
 app.use('/', router);
 
+//
+
 const PORT = process.env.PORT || 8080; // Define PORT before using it
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+console.log(`Server is running on port ${PORT}`);
 });
 
 module.exports = app; // for testing only

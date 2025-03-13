@@ -65,7 +65,7 @@ describe('Test Movie Routes', () => {
     describe('Movie Operations', () => {
         it('should add a new movie', async () => {
             const res = await chai.request(server)
-                .post('/movies')
+                .post('/addmovies')
                 .set('Authorization', token)
                 .send(testData.movie);
                 
@@ -77,7 +77,7 @@ describe('Test Movie Routes', () => {
 
         it('should retrieve all movies', async () => {
             const res = await chai.request(server)
-                .get('/movies')
+                .get('/listmovies')
                 .set('Authorization', token);
                 
             res.should.have.status(200);
