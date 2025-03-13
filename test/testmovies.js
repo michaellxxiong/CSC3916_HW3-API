@@ -77,7 +77,7 @@ describe('Test Movie Routes', () => {
 
         it('should retrieve all movies', async () => {
             const res = await chai.request(server)
-                .get('/listmovies')
+                .get('/movielist')
                 .set('Authorization', token);
                 
             res.should.have.status(200);

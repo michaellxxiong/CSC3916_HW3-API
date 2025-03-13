@@ -133,7 +133,7 @@ router.route('/addmovies')
         }
     });
 
-router.route('/listmovies')
+router.route('/movielist')
     //Get all movies
     .get(authJwtController.isAuthenticated, async (req, res) => {
         try {
