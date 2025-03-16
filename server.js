@@ -67,7 +67,7 @@ router.post('/signin', async (req, res) => { // Use async/await
   }
 });
 
-router.route('/addmovies')
+router.route('/movies')
     //Add a new movie
     .post(authJwtController.isAuthenticated, async (req, res) => {
 
@@ -131,9 +131,7 @@ router.route('/addmovies')
                 error: err.message
             });
         }
-    });
-
-router.route('/movielist')
+    })
     //Get all movies
     .get(authJwtController.isAuthenticated, async (req, res) => {
         try {
@@ -151,7 +149,7 @@ router.route('/movielist')
                 error: err.message
             });
         }
-    });
+      });
 
 app.use('/', router);
 
