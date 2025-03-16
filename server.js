@@ -72,7 +72,6 @@ router.route('/movies')
     // HTTP GET Method
     // Requires no authentication.
     // Returns a JSON object with status, message, headers, query, and env.
-    var o = getJSONObjectForMovieRequirement(req);
     o.status = 200;
     o.message = "GET movies";
     res.json(o);
@@ -82,7 +81,6 @@ router.route('/movies')
     // HTTP PUT Method
       // Requires JWT authentication.
       // Returns a JSON object with status, message, headers, query, and env.
-      var o = getJSONObjectForMovieRequirement(req);
       o.status = 201;
       o.message = "movie saved";
       res.status(201).json(o);
