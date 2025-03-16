@@ -67,6 +67,9 @@ router.post('/signin', async (req, res) => { // Use async/await
   }
 });
 
+//Routes for /movies
+//POST - add a single movie
+//GET - return all movies
 router.route('/movies')
   .post(authJwtController.isAuthenticated, async (req, res) => {
 
@@ -116,7 +119,7 @@ router.route('/movies')
         await movie.save();
 
         // Return success message with the movie object
-        return res.status(201).json({
+        return res.status(200).json({
             success: true,
             message: `The movie "${req.body.title}" has been successfully saved!`,
             movie  // Return the created movie object
@@ -131,6 +134,7 @@ router.route('/movies')
         });
     }
   })
+
   //Get all movies
   .get(authJwtController.isAuthenticated, async (req, res) => {
     try {
@@ -152,7 +156,123 @@ router.route('/movies')
 
 app.use('/', router);
 
-//
+//Routes for /movies/:movieId
+//GET - return a movie given movieID
+//PUT - update a movie given movieID
+//DELETE - delete a movie given movieID
+router.route('/movies/:movieId')
+  //Get movie given movieId
+  .get(authJwtController.isAuthenticated, async (req, res) => {
+    const { movieId } = req.params;  // Extract movieId from URL parameters
+
+    try {
+        // Find the movie by its ObjectId
+        const movie = await Movie.findById(movieId);
+
+        // If the movie is not found, return a 404
+        if (!movie) {
+            return res.status(404).json({
+                success: false,
+                message: `Movie with id "${movieId}" not found.`
+            });
+        }
+
+        // Return the found movie
+        return res.status(200).json({
+            success: true,
+            movie
+        });
+
+    } catch (err) {
+        console.error('Error retrieving movie:', err.message);
+        return res.status(500).json({
+            success: false,
+            message: "Error retrieving movie",
+            error: err.message
+        });
+    }
+  })
+
+  //Update movie given movieId
+  .put(authJwtController.isAuthenticated, async (req, res) => {
+    const { movieId } = req.params;  // Extract movieId from URL parameters
+    const { title, releaseDate, genre, actors } = req.body;
+
+    // Validate that required fields are provided
+    if (!title || !releaseDate || !genre || !actors || actors.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Title, releaseDate, genre, and at least one actor are required."
+        });
+    }
+
+    try {
+        // Find the movie by its ObjectId and update it
+        const movie = await Movie.findByIdAndUpdate(movieId, {
+            title,
+            releaseDate,
+            genre,
+            actors
+        }, { new: true });  // The `new` option returns the updated document
+
+        // If the movie is not found, return a 404
+        if (!movie) {
+            return res.status(404).json({
+                success: false,
+                message: `Movie with id "${movieId}" not found.`
+            });
+        }
+
+        // Return the updated movie
+        return res.status(200).json({
+            success: true,
+            message: `Movie with id "${movieId}" has been updated.`,
+            movie
+        });
+
+    } catch (err) {
+        console.error('Error updating movie:', err.message);
+        return res.status(500).json({
+            success: false,
+            message: "Error updating movie",
+            error: err.message
+        });
+    }
+  })
+  
+  //Delete movie given movideId
+  .delete(authJwtController.isAuthenticated, async (req, res) => {
+    const { movieId } = req.params;  // Extract movieId from URL parameters
+
+    try {
+        // Find and delete the movie by its ObjectId
+        const movie = await Movie.findByIdAndDelete(movieId);
+
+        // If the movie is not found, return a 404
+        if (!movie) {
+            return res.status(404).json({
+                success: false,
+                message: `Movie with id "${movieId}" not found.`
+            });
+        }
+
+        // Return a success message
+        return res.status(200).json({
+            success: true,
+            message: `Movie with id "${movieId}" has been deleted.`
+        });
+
+    } catch (err) {
+        console.error('Error deleting movie:', err.message);
+        return res.status(500).json({
+            success: false,
+            message: "Error deleting movie",
+            error: err.message
+        });
+    }
+  });
+app.use('/', router);
+
 
 const PORT = process.env.PORT || 8080; // Define PORT before using it
 app.listen(PORT, () => {

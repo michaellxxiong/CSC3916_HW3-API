@@ -69,7 +69,7 @@ describe('Test Movie Routes', () => {
                 .set('Authorization', token)
                 .send(testData.movie);
                 
-            res.should.have.status(201);
+            res.should.have.status(200);
             res.body.should.be.an('object');
             res.body.should.have.property('movie');
             res.body.movie.should.have.property('title', testData.movie.title);
