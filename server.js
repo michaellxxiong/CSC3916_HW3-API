@@ -69,21 +69,9 @@ router.post('/signin', async (req, res) => { // Use async/await
 
 router.route('/movies')
   .get((req, res) => {
-    // HTTP GET Method
-    // Requires no authentication.
-    // Returns a JSON object with status, message, headers, query, and env.
-    o.status = 200;
-    o.message = "GET movies";
-    res.json(o);
     return res.status(500).json({ success: false, message: 'GET request not supported' });
   })
   .post((req, res) => {
-    // HTTP PUT Method
-      // Requires JWT authentication.
-      // Returns a JSON object with status, message, headers, query, and env.
-      o.status = 201;
-      o.message = "movie saved";
-      res.status(201).json(o);
     return res.status(500).json({ success: false, message: 'POST request not supported' });
   });
 app.use('/', router);
