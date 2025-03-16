@@ -68,11 +68,86 @@ router.post('/signin', async (req, res) => { // Use async/await
 });
 
 router.route('/movies')
-  .get((req, res) => {
-    return res.status(200).json({ success: true, message: 'GET request success!' });
+  .post( async (req, res) => {
+
+    // Validate that the title field is provided
+    if (!req.body.title || req.body.title.trim() === "") {
+        return res.status(400).json({
+            success: false,
+            message: "Title is required!"
+        });
+    }
+
+    // Validate that the releaseDate field is provided and is a number
+    if (!req.body.releaseDate || isNaN(req.body.releaseDate)) {
+        return res.status(400).json({
+            success: false,
+            message: "A valid releaseDate is required!"
+        });
+    }
+
+    // Validate that the genre field is provided
+    if (!req.body.genre || req.body.genre.trim() === "") {
+        return res.status(400).json({
+            success: false,
+            message: "Genre is required!"
+        });
+    }
+
+    // Validate that the actors field is provided and contains at least one actor
+    if (!req.body.actors || req.body.actors.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "A movie must contain at least one actor!"
+        });
+    }
+
+    try {
+
+        // Create a new movie document
+        const movie = new Movie({
+            title: req.body.title,
+            releaseDate: req.body.releaseDate,
+            genre: req.body.genre,
+            actors: req.body.actors
+        });
+
+        // Save the movie to the MongoDB database
+        await movie.save();
+
+        // Return success message with the movie object
+        return res.status(201).json({
+            success: true,
+            message: `The movie "${req.body.title}" has been successfully saved!`,
+            movie  // Return the created movie object
+        });
+
+    } catch (err) {
+
+        return res.status(500).json({
+            success: false,
+            message: "Error saving movie",
+            error: err.message
+        });
+    }
   })
-  .post(authJwtController.isAuthenticated,(req, res) => {
-    return res.status(201).json({ success: true, message: 'POST request success!' });
+  //Get all movies
+  .get( async (req, res) => {
+    try {
+        // If no title, return all movies as an array
+        const movies = await Movie.find();
+
+        // Return the list of movies directly as an array
+        return res.status(200).json(movies);  // Return just the array of movies
+
+    } catch (err) {
+        
+        return res.status(500).json({
+            success: false,
+            message: "Error retrieving movies",
+            error: err.message
+        });
+    }
   });
 app.use('/', router);
 
