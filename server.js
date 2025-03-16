@@ -69,10 +69,10 @@ router.post('/signin', async (req, res) => { // Use async/await
 
 router.route('/movies')
   .get((req, res) => {
-    return res.status(500).json({ success: false, message: 'GET request not supported' });
+    return res.status(200).json({ success: true, message: 'GET request success!' });
   })
-  .post((req, res) => {
-    return res.status(500).json({ success: false, message: 'POST request not supported' });
+  .post(authJwtController.isAuthenticated,(req, res) => {
+    return res.status(201).json({ success: true, message: 'POST request success!' });
   });
 app.use('/', router);
 
