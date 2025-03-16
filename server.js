@@ -1,9 +1,9 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const passport = require('passport');
-const authJwtController = require('./auth_jwt'); // You're not using authController, consider removing it
-const jwt = require('jsonwebtoken');
-const cors = require('cors');
+var express = require('express');
+var bodyParser = require('body-parser');
+var passport = require('passport');
+var authJwtController = require('./auth_jwt');
+var jwt = require('jsonwebtoken');
+var cors = require('cors');
 const User = require('./Users');
 const Movie = require('./Movies'); // You're not using Movie, consider removing it
 
@@ -68,7 +68,7 @@ router.post('/signin', async (req, res) => { // Use async/await
 });
 
 router.route('/movies')
-  .post( async (req, res) => {
+  .post(authJwtController.isAuthenticated, async (req, res) => {
 
     // Validate that the title field is provided
     if (!req.body.title || req.body.title.trim() === "") {
@@ -132,7 +132,7 @@ router.route('/movies')
     }
   })
   //Get all movies
-  .get( async (req, res) => {
+  .get(authJwtController.isAuthenticated, async (req, res) => {
     try {
         // If no title, return all movies as an array
         const movies = await Movie.find();
@@ -149,6 +149,7 @@ router.route('/movies')
         });
     }
   });
+
 app.use('/', router);
 
 //
