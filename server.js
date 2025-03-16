@@ -67,6 +67,7 @@ router.post('/signin', async (req, res) => { // Use async/await
   }
 });
 
+//----------------------------------------------------------------------------------------------------------
 //Routes for /movies
 //POST - add a single movie
 //GET - return all movies
@@ -152,10 +153,21 @@ router.route('/movies')
             error: err.message
         });
     }
+  })
+
+  //Put is not supported in /movies
+  .put(authJwtController.isAuthenticated, async (req, res) => {
+    return res.status(500).json({ success: false, message: 'PUT request not supported' });
+  })
+
+  //Delete is not supported in /movies
+  .delete(authJwtController.isAuthenticated, async (req, res) => {
+    return res.status(500).json({ success: false, message: 'DELETE request not supported' });
   });
 
 app.use('/', router);
 
+//----------------------------------------------------------------------------------------------------------
 //Routes for /movies/:movieId
 //GET - return a movie given movieID
 //PUT - update a movie given movieID
@@ -270,7 +282,13 @@ router.route('/movies/:movieId')
             error: err.message
         });
     }
+  })
+
+  //Post is not supported in /movies
+  .post(authJwtController.isAuthenticated, async (req, res) => {
+    return res.status(500).json({ success: false, message: 'Post request not supported' });
   });
+  
 app.use('/', router);
 
 
